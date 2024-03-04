@@ -1,0 +1,68 @@
+# - name: Update ubuntu server package
+#   hosts: test
+#   become: yes
+#   become_user: root
+#   become_method: sudo
+#   tasks:
+#     - name:
+#       shell:
+#         cmd: apt update; apt upgrade
+
+# - name: Copy and insmod overlay and br_netfilter module
+#   hosts: test
+#   tasks:
+#     - name: copy k8s.conf
+#       copy: src=files/k8s.conf dst=/etc/modules-load.d/k8s.conf
+#     - name: insmode overlay module
+#       sudo: True
+#       shell:
+#         cmd: modprobe overlay br_netfilter
+
+- name: Install crio package
+  hosts: test
+  remote_user: ubuntu
+  become: yes
+  become_user: root
+  become_method: sudo
+  vars:
+    OS: "xUbuntu_20.04"
+    VERSION: "1.28"
+    cri_tool_ver: "v1.28.0"
+  tasks:
+    - name: Add libcontainer key to a specific keyring file
+      apt_key: 
+        url: https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/{{ OS }}/Release.key
+        keyring: /usr/share/keyrings/libcontainers-archive-keyring.gpg
+
+    - name: Add libcontainer source
+      apt_repository:
+        repo: "deb [signed-by=/usr/share/keyrings/libcontainers-archive-keyring.gpg] https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/{{ OS }}/ /"
+
+    - name: Add crio key to a specific keyring file
+      apt_key: 
+        url: https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable:/cri-o:/{{ VERSION }}/{{ OS }}/Release.key
+        keyring: /usr/share/keyrings/libcontainers-crio-archive-keyring.gpg
+
+    - name: Add crio source
+      apt_repository:
+        repo: "deb [signed-by=/usr/share/keyrings/libcontainers-crio-archive-keyring.gpg] https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable:/cri-o:/{{ VERSION }}/{{ OS }}/ /"
+
+    - name: install crio and cri-o-runc
+      apt: 
+        pkg:
+        - cri-o
+        - cri-o-runc
+        update_cache: yes
+
+    - name: Start crio service
+      service:
+        name: crio
+        enabled: True
+        state: started
+
+    - name: Install cri-tool
+      unarchive:
+        remote_src: True
+        src: https://github.com/kubernetes-sigs/cri-tools/releases/download/{{ cri_tool_ver }}/crictl-{{ cri_tool_ver }}-linux-amd64.tar.gz
+        dest: /usr/local/bin
+

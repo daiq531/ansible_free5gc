@@ -1,0 +1,35 @@
+- name: install make and gcc package
+  hosts: nodes
+  remote_user: ubuntu
+  become: yes
+  become_user: root
+  become_method: sudo
+  tasks:
+    - name: install make and gcc
+      ansible.builtin.apt: 
+        name: make, gcc
+        state: present
+
+- name: clone and compile gtp5g module
+  hosts: nodes
+  remote_user: ubuntu
+  tasks:
+    - name: clone gtp5g repo
+      git:
+        repo: https://github.com/free5gc/gtp5g.git
+        dest: /home/ubuntu/gtp5g
+        clone: yes
+        update: yes
+
+    - name: compile gtp5g module
+      shell:
+        chdir: /home/ubuntu/gtp5g
+        cmd: make
+
+    - name: install gtp5h module
+      become: yes
+      become_user: root
+      become_method: sudo
+      shell:
+        chdir: /home/ubuntu/gtp5g
+        cmd: make install
