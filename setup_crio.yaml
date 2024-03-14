@@ -19,7 +19,7 @@
 #         cmd: modprobe overlay br_netfilter
 
 - name: Install crio package
-  hosts: test
+  hosts: k8s-nodes
   remote_user: ubuntu
   become: yes
   become_user: root
@@ -28,12 +28,12 @@
     OS: "xUbuntu_20.04"
     VERSION: "1.28"
     cri_tool_ver: "v1.28.0"
+    K8S_VERSION: "v1.28"
   tasks:
     - name: Add libcontainer key to a specific keyring file
       apt_key: 
         url: https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/{{ OS }}/Release.key
         keyring: /usr/share/keyrings/libcontainers-archive-keyring.gpg
-
     - name: Add libcontainer source
       apt_repository:
         repo: "deb [signed-by=/usr/share/keyrings/libcontainers-archive-keyring.gpg] https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/{{ OS }}/ /"
@@ -42,7 +42,6 @@
       apt_key: 
         url: https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable:/cri-o:/{{ VERSION }}/{{ OS }}/Release.key
         keyring: /usr/share/keyrings/libcontainers-crio-archive-keyring.gpg
-
     - name: Add crio source
       apt_repository:
         repo: "deb [signed-by=/usr/share/keyrings/libcontainers-crio-archive-keyring.gpg] https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable:/cri-o:/{{ VERSION }}/{{ OS }}/ /"
@@ -65,4 +64,5 @@
         remote_src: True
         src: https://github.com/kubernetes-sigs/cri-tools/releases/download/{{ cri_tool_ver }}/crictl-{{ cri_tool_ver }}-linux-amd64.tar.gz
         dest: /usr/local/bin
+
 

@@ -1,0 +1,42 @@
+- name: Make prerequiste for each K8S node
+  hosts: k8s-nodes
+  remote_user: ubuntu
+  become: yes
+  become_user: root
+  become_method: sudo
+  tasks:
+    - name: Run apt-get update
+      apt:
+        update_cache: yes
+    - name: Update all packages to their latest version
+      apt:
+        name: "*"
+        state: latest
+    - name: Insmod overlay
+      community.general.modprobe:
+        name: overlay
+        # persistent: present
+        state: present
+    - name: Insmod br_netfilter
+      community.general.modprobe:
+        name: br_netfilter
+        # persistent: present
+        state: present
+    - name: Set net.ipv4.ip_forward
+      ansible.posix.sysctl:
+        name: net.ipv4.ip_forward
+        value: '1'
+        sysctl_file: /etc/sysctl.d/k8s.conf
+        sysctl_set: true
+    - name: Set net.bridge.bridge-nf-call-iptables
+      ansible.posix.sysctl:
+        name: net.bridge.bridge-nf-call-iptables
+        value: '1'
+        sysctl_file: /etc/sysctl.d/k8s.conf
+        sysctl_set: true
+    - name: Set net.bridge.bridge-nf-call-ip6tables
+      ansible.posix.sysctl:
+        name: net.bridge.bridge-nf-call-ip6tables
+        value: '1'
+        sysctl_file: /etc/sysctl.d/k8s.conf
+        sysctl_set: true

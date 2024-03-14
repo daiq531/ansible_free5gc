@@ -1,35 +1,31 @@
-- name: Setup K8S node
-  hosts: test
+- name: Install crio package
+  hosts: k8s-nodes
   remote_user: ubuntu
   become: yes
   become_user: root
   become_method: sudo
+  vars:
+    OS: "xUbuntu_20.04"
+    VERSION: "1.28"
+    cri_tool_ver: "v1.28.0"
+    K8S_VERSION: "v1.28"
   tasks:
-    - name: insmod overlay
-      community.general.modprobe:
-        name: br_netfilter
-        # persistent: present
-        state: present
-    - name: insmod br_netfilter
-      community.general.modprobe:
-        name: br_netfilter
-        # persistent: present
-        state: present
-    - name: Set net.ipv4.ip_forward
-      ansible.posix.sysctl:
-        name: net.ipv4.ip_forward
-        value: '1'
-        sysctl_file: /etc/sysctl.d/k8s.conf
-        sysctl_set: true
-    - name: Set net.bridge.bridge-nf-call-iptables
-      ansible.posix.sysctl:
-        name: net.bridge.bridge-nf-call-iptables
-        sysctl_file: /etc/sysctl.d/k8s.conf
-        value: '1'
-        sysctl_set: true
-    - name: Set net.bridge.bridge-nf-call-ip6tables
-      ansible.posix.sysctl:
-        name: net.bridge.bridge-nf-call-ip6tables
-        sysctl_file: /etc/sysctl.d/k8s.conf
-        value: '1'
-        sysctl_set: true
+    - name: Create directory for storing K8S key ring
+      ansible.builtin.file:
+        path: /etc/apt/keyrings
+        state: directory
+        mode: '0755'
+    - name: Add kubernetes key to a specific keyring file
+      apt_key: 
+        url: https://pkgs.k8s.io/core:/stable:/{{ K8S_VERSION }}/deb/Release.key
+        keyring: /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+    - name: Add kubernetes source
+      apt_repository:
+        repo: "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/{{ K8S_VERSION }}/deb/ /"
+    - name: Install kubelet kubeadm kubectl
+      apt: 
+        pkg:
+        - kubelet
+        - kubeadm
+        - kubectl
+        update_cache: yes
