@@ -1,4 +1,4 @@
-- name: Install crio package
+- name: Install kubernetes package
   hosts: k8s-nodes
   remote_user: ubuntu
   become: yes

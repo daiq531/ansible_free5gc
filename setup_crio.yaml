@@ -46,7 +46,7 @@
       apt_repository:
         repo: "deb [signed-by=/usr/share/keyrings/libcontainers-crio-archive-keyring.gpg] https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable:/cri-o:/{{ VERSION }}/{{ OS }}/ /"
 
-    - name: install crio and cri-o-runc
+    - name: Install crio and cri-o-runc
       apt: 
         pkg:
         - cri-o

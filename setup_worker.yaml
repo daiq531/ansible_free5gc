@@ -1,0 +1,14 @@
+- name: Join worker node to master
+  hosts: k8s-worker
+  remote_user: ubuntu
+  become: yes
+  become_user: root
+  become_method: sudo
+  vars:
+    master-ip: "10.109.184.72"
+    token: "xtdpq9.c25sxeem688juc9q"
+    discovery-token-ca-cert-hash: "sha256:39911eba0a07e5970af427d457274cce648f3494396922a257a1b8aed8c944fb"
+  tasks:
+    - name: Join worker node to master
+      shell:
+        cmd: "kubeadm join {{ master-ip }}:6443 --token {{ token }} --discovery-token-ca-cert-hash {{ discovery-token-ca-cert-hash }}"
